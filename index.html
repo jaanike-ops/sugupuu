@@ -1,1 +1,213 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
+<title>Sugupuu v6.0 - ainult Ida kast</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#fdf6f8; --surface:#fff; --border:#f0c9d8; --pink-light:#ffe0f0; --pink-mid:#ffcfe6; --pink-border:#f0a0c3; --gold:#e8b44a; --text:#2b1a20; --text2:#7a5a65; --blue-bg:#d6eaff; --blue-border:#a8c8ff; --warn-bg:#ffebeb; --warn-b:#ffc9c9; }
+  *{box-sizing:border-box} html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:"Plus Jakarta Sans",system-ui,sans-serif;overflow-x:clip}
+  header{position:sticky;top:0;z-index:30;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:var(--surface);border-bottom:1px solid var(--border)}
+  .logo{width:32px;height:32px;border-radius:999px;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-family:"Instrument Serif",serif}
+  .puu-btn{padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;background:var(--pink-light);border:1px solid var(--pink-border);cursor:pointer}
+  #canvas{position:relative;width:100%;height:calc(100vh - 56px - 32px);overflow:hidden;touch-action:none;cursor:grab;background:var(--bg)}
+  #world{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0}
+  #lines{position:absolute;left:-2000px;top:-2000px;pointer-events:none;overflow:visible}
+  .person{position:absolute;width:150px;height:80px;transform:translate(-50%,-50%);user-select:none}
+  .box{width:100%;height:100%;border-radius:8px;display:flex;flex-direction:column;justify-content:center;padding:8px 12px;position:relative;background:linear-gradient(180deg,var(--pink-light) 0%, var(--pink-mid) 100%);border:1.5px solid var(--pink-border);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .pencil{position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:3px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .pencil:hover{background:rgba(0,0,0,.08)}
+  .name{font-weight:600;font-size:13px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sub{font-size:11px;line-height:1.1;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .date{font-size:11px;margin-top:2px;color:var(--text2)}
+  .plus{position:absolute;left:50%;bottom:-16px;transform:translateX(-50%);width:32px;height:32px;border-radius:999px;background:#fff;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.12);cursor:pointer;font-weight:800;color:var(--gold);font-size:18px;line-height:1}
+  .plus:hover{scale:1.05}
+  .add-wrap{position:absolute;inset:0;pointer-events:none}
+  .add-btn{position:absolute;width:124px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;box-shadow:0 1px 4px rgba(0,0,0,.08);pointer-events:auto;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text)}
+  .add-btn.blue{background:var(--blue-bg);border-color:var(--blue-border);color:#1e3a5f}
+  .add-btn.pink{background:var(--pink-light);border-color:var(--pink-border);color:#6b2a44}
+  .add-btn.gray{background:#f3f3f3;border-color:#ddd;color:#333}
+  .controls{position:absolute;left:16px;bottom:16px;z-index:10;display:flex;flex-direction:column;gap:8px}
+  .ctrl-row{display:flex;gap:8px}
+  .ctrl{height:36px;padding:0 12px;border-radius:999px;background:#fff;border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,.06);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px}
+  .hint{position:absolute;right:16px;bottom:16px;z-index:10;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.85);backdrop-filter:blur(6px);font-size:11px;border:1px solid var(--border);color:var(--text2)}
+  .toast{padding:6px 12px;border-radius:999px;background:#2b1a20;color:#fff;font-size:11px;box-shadow:0 4px 12px rgba(0,0,0,.2);width:fit-content;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* Modals */
+  .modal{position:fixed;inset:0;z-index:50;background:#fff;display:flex;flex-direction:column;overflow:hidden}
+  .modal-head{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+  .tabs{display:flex;border-bottom:1px solid var(--border);font-size:14px}
+  .tab{flex:1;padding:12px 0;font-weight:500;border-bottom:2px solid transparent;background:none;border-left:none;border-right:none;border-top:none;cursor:pointer;color:var(--text2)}
+  .tab.active{border-bottom-color:var(--gold);color:var(--text)}
+  .scroll{flex:1;overflow:auto}
+  .content{max-width:720px;margin:0 auto;padding:20px;width:100%}
+  .card{border:1px solid var(--border);border-radius:12px;padding:16px;background:#fff}
+  .card.muted{background:#fff7f9}
+  .label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:600;color:var(--text2)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .input{width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;background:#fff}
+  .warn{margin-top:8px;padding:8px 10px;border-radius:6px;font-size:12px;background:var(--warn-bg);color:#8a2a2a;border:1px solid var(--warn-b)}
+  .dropdown{position:absolute;z-index:10;top:100%;margin-top:4px;width:100%;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,.12);overflow:hidden}
+  .dropdown button{width:100%;text-align:left;padding:10px 12px;font-size:14px;background:#fff;border:none;cursor:pointer}
+  .dropdown button:hover{background:rgba(0,0,0,.04)}
+  footer{height:32px;display:flex;align-items:center;justify-content:center;font-size:10px;border-top:1px solid var(--border);color:var(--text2);background:var(--surface)}
+  /* no photo anywhere, no copy mark */
+</style>
+</head>
+<body>
+<header>
+  <div style="display:flex;align-items:center;gap:12px"><div class="logo">I</div><span style="font-family:'Instrument Serif',serif;font-size:18px;font-weight:600">Sugupuu</span></div>
+  <div style="display:flex;align-items:center;gap:8px"><button id="puuBtn" class="puu-btn">Puu (1)</button><span style="font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(0,0,0,.05);color:var(--text2)">v6.0 - ainult Ida</span></div>
+</header>
 
+<div id="canvas">
+  <div id="world">
+    <svg id="lines" width="4000" height="4000"><defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#b08a96"/></marker></defs></svg>
+  </div>
+  <div class="controls">
+    <div class="ctrl-row"><button class="ctrl" id="resetBtn">↺ Lähtesta</button><button class="ctrl" id="fitBtn">⤢ Sobita</button></div>
+    <div id="toast" class="toast" style="display:none"></div>
+  </div>
+  <div class="hint">Näpista 2 sõrmega suumiks • Lohista liigutamiseks</div>
+</div>
+
+<!-- Profile Modal - ilma fotota -->
+<div id="profileModal" class="modal" style="display:none">
+  <div class="modal-head"><button id="profileBack" style="display:flex;align-items:center;gap:8px;background:none;border:none;font-size:14px;font-weight:500;cursor:pointer">← Puu</button><span style="font-size:14px;font-weight:600">Ida Raudsepp</span><button id="profileClose" style="width:32px;height:32px;border-radius:999px;border:none;background:transparent;cursor:pointer;font-size:18px">×</button></div>
+  <div class="tabs"><button class="tab active" data-tab="Puu">Puu</button><button class="tab" data-tab="Muuda">Muuda</button><button class="tab" data-tab="Lisa">Lisa</button><button class="tab" data-tab="Veel">Veel</button></div>
+  <div class="scroll"><div class="content" id="profileContent"></div></div>
+</div>
+
+<!-- Seos Modal -->
+<div id="seosModal" class="modal" style="display:none;z-index:60">
+  <div class="modal-head"><button id="seosBack" style="display:flex;align-items:center;gap:8px;background:none;border:none;font-size:14px;font-weight:500;cursor:pointer">← Lisa pereliikmeid</button><span></span></div>
+  <div class="scroll"><div class="content" style="display:flex;flex-direction:column;gap:20px">
+    <div>
+      <div class="label">Seos</div>
+      <select id="seosSelect" class="input" style="margin-top:6px">
+        <option value="isa">vanem - isa</option>
+        <option value="ema">vanem - ema</option>
+        <option value="abikaasa">abikaasa</option>
+        <option value="lahutatud">lahutatud abikaasa</option>
+        <option value="partner">partner</option>
+        <option value="endine">endine partner</option>
+        <option value="kihlatu">kihlatu</option>
+        <option value="other">other partner</option>
+        <option value="vend">õde/vend - vend</option>
+        <option value="ode">õde/vend - õde</option>
+        <option value="poeg">laps - poeg</option>
+        <option value="tutar">laps - tütar</option>
+        <option value="laps">laps</option>
+      </select>
+    </div>
+    <div style="position:relative">
+      <div class="label">Vanemate tüüp</div>
+      <button id="parentTypeBtn" class="input" style="margin-top:6px;display:flex;align-items:center;justify-content:space-between;text-align:left"><span id="parentTypeLabel">Pärisvanemad</span><span>▼</span></button>
+      <div id="parentDropdown" class="dropdown" style="display:none"><button data-val="Pärisvanemad">Pärisvanemad</button><button data-val="Lapsendajad">Lapsendajad</button><button data-val="Kasuvanemad">Kasuvanemad</button></div>
+      <div class="warn">Valige vanemate tüüp hoolikalt. See mõjutab sugupuu joondust.</div>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:14px"><input id="suggestCb" type="checkbox"> Soovita perenimesid</label>
+    <div style="border-top:1px solid var(--border);padding-top:16px;display:flex;flex-direction:column;gap:12px">
+      <div class="label">Isiku andmed</div>
+      <div class="grid2"><input id="f_tiitel" class="input" placeholder="Tiitel"><input id="f_eesnimi" class="input" placeholder="Eesnimi"></div>
+      <div class="grid2"><input id="f_lisanimi" class="input" placeholder="Lisanimi"><input id="f_perenimi" class="input" placeholder="Perenimi - Raudsepp" value="Raudsepp"></div>
+      <div class="grid2"><input id="f_jareliide" class="input" placeholder="Järelliide"><input id="f_sunninimi" class="input" placeholder="Sünninimi"></div>
+      <div style="display:flex;gap:16px;align-items:center"><label style="display:flex;gap:4px;font-size:14px"><input type="radio" name="elus" value="Elus" checked> Elus</label><label style="display:flex;gap:4px;font-size:14px"><input type="radio" name="elus" value="Surnud"> Surnud</label><select id="f_sugu" class="input" style="margin-left:auto;width:120px"><option>Mees</option><option selected>Naine</option></select></div>
+      <div><div class="label">Sünnikuupäev</div><div style="display:flex;gap:8px;margin-top:6px"><select id="f_sundT" class="input" style="width:110px"><option>Täpselt</option><option>Umbes</option></select><input id="f_pp" class="input" style="width:56px" placeholder="PP"><input id="f_kk" class="input" style="width:56px" placeholder="KK"><input id="f_aaaa" class="input" style="width:80px" placeholder="AAAA"></div></div>
+      <input id="f_sundkoht" class="input" placeholder="Sünnikoht">
+      <div class="grid3"><input id="f_surm_pp" class="input" placeholder="Surm PP"><input id="f_surm_kk" class="input" placeholder="KK"><input id="f_surm_aaaa" class="input" placeholder="AAAA"></div>
+      <input id="f_surmakoht" class="input" placeholder="Surmakoht">
+      <input id="f_matmiskoht" class="input" placeholder="Matmiskoht">
+      <input id="f_surmaPohjus" class="input" placeholder="Surma põhjus">
+      <input id="f_amet" class="input" placeholder="Amet">
+      <input id="f_abielu" class="input" placeholder="Abielumise aeg ja koht">
+    </div>
+    <div style="display:flex;gap:12px;padding-bottom:32px"><button id="seosCancel" style="flex:1;padding:12px;border-radius:12px;border:1px solid var(--border);background:#fff;font-size:14px;font-weight:500;cursor:pointer">Loobu</button><button id="seosSave" style="flex:1;padding:12px;border-radius:12px;border:none;background:var(--gold);color:#fff;font-size:14px;font-weight:600;cursor:pointer">Salvesta</button></div>
+  </div></div>
+</div>
+
+<footer>v6.0 - ainult Ida kast kogu infoga • 150×80px • #ffe0f0→#ffcfe6 • #f0a0c3 • plus 32px #e8b44a • ilma fotota • puhas algus • keskne</footer>
+
+<script>
+const persons=[{id:'ida', eesnimi:'Ida', perenimi:'Raudsepp', sunninimi:'Penkowski', sundDate:'24. märts 1941', sundPlace:'Klassino, Omskiy rayon, Omskaya oblast, Russia', gender:'female', x:0,y:0, parentIds:[], partnerIds:[], childrenIds:[]}];
+let scale=1, offset={x: innerWidth/2, y: innerHeight/2}, isDrag=false, dragStart={x:0,y:0}, lastPinch=null, selectedForAdd=null, seosType='isa', parentType='Pärisvanemad';
+const world=document.getElementById('world'), linesSvg=document.getElementById('lines'), canvas=document.getElementById('canvas'), puuBtn=document.getElementById('puuBtn'), toast=document.getElementById('toast');
+function showToast(m){ toast.textContent=m; toast.style.display='block'; setTimeout(()=>toast.style.display='none',2500); }
+function renderPuuCount(){ puuBtn.textContent='Puu ('+persons.length+')'; }
+function getPerson(id){ return persons.find(p=>p.id===id); }
+function applyTransform(){ world.style.transform='translate('+offset.x+'px,'+offset.y+'px) scale('+scale+')'; }
+function drawLines(){
+  const existing=linesSvg.querySelectorAll('path.line'); existing.forEach(e=>e.remove());
+  persons.forEach(p=>{
+    p.parentIds.forEach(pid=>{ const par=getPerson(pid); if(!par) return; const path=document.createElementNS('http://www.w3.org/2000/svg','path'); path.setAttribute('class','line'); const mid=(par.y+p.y)/2; path.setAttribute('d','M '+(par.x+2000)+' '+(par.y+40+2000)+' V '+(mid+2000)+' H '+(p.x+2000)+' V '+(p.y-40+2000)+'') ; path.setAttribute('fill','none'); path.setAttribute('stroke','#c9a0ad'); path.setAttribute('stroke-width','1.5'); path.setAttribute('marker-end','url(#arr)'); linesSvg.appendChild(path); });
+    p.partnerIds.forEach(pid=>{ const pt=getPerson(pid); if(!pt|| p.id>pt.id) return; const path=document.createElementNS('http://www.w3.org/2000/svg','path'); path.setAttribute('class','line'); const x1=Math.min(p.x,pt.x)+75, x2=Math.max(p.x,pt.x)-75; path.setAttribute('d','M '+(x1+2000)+' '+(p.y+2000)+' H '+(x2+2000)); path.setAttribute('fill','none'); path.setAttribute('stroke','#c9a0ad'); path.setAttribute('stroke-width','1.5'); linesSvg.appendChild(path); });
+  });
+}
+function createPersonEl(p){
+  const el=document.createElement('div'); el.className='person'; el.style.left=p.x+'px'; el.style.top=p.y+'px';
+  el.innerHTML='<div class="box"><div class="pencil" data-act="edit">✎</div><div style="padding-right:12px"><div class="name">'+p.eesnimi+' '+p.perenimi+'</div><div class="sub">'+(p.sunninimi?'('+p.sunninimi+')':'')+'</div><div class="date">'+p.sundDate+'</div><div class="sub">'+p.sundPlace.split(',')[0]+'</div></div></div><div class="plus" data-act="plus">+</div><div class="add-wrap" style="display:'+(selectedForAdd===p.id?'block':'none')+'"><button class="add-btn blue" data-add="isa" style="left:-70px;top:-60px">Lisa isa</button><button class="add-btn pink" data-add="ema" style="left:96px;top:-60px">Lisa ema</button><button class="add-btn" data-add="vend" style="left:-180px;top:-4px">Lisa vend</button><button class="add-btn" data-add="ode" style="left:-180px;top:40px">Lisa õde</button><button class="add-btn" data-add="mees" style="left:196px;top:22px">Lisa mees/naine</button><button class="add-btn" data-add="poeg" style="left:-70px;top:104px">Lisa poeg</button><button class="add-btn" data-add="tutar" style="left:96px;top:104px">Lisa tütar</button><button class="add-btn gray" data-add="loobu" style="left:13px;top:22px">Loobu</button></div>';
+  el.querySelector('[data-act="edit"]').onclick=(e)=>{ e.stopPropagation(); openProfile(); };
+  el.querySelector('[data-act="plus"]').onclick=(e)=>{ e.stopPropagation(); selectedForAdd = selectedForAdd===p.id? null : p.id; render(); };
+  el.querySelectorAll('[data-add]').forEach(b=>{ b.onclick=(e)=>{ e.stopPropagation(); const t=b.getAttribute('data-add'); if(t==='loobu'){ selectedForAdd=null; render(); return; } openSeos(t); }; });
+  return el;
+}
+function render(){
+  [...world.querySelectorAll('.person')].forEach(n=>n.remove()); persons.forEach(p=>{ world.appendChild(createPersonEl(p)); }); drawLines(); applyTransform(); renderPuuCount();
+}
+// Pan / zoom
+canvas.addEventListener('mousedown', e=>{ if(e.target.closest('.person')) return; isDrag=true; dragStart={x:e.clientX-offset.x, y:e.clientY-offset.y}; canvas.style.cursor='grabbing'; });
+window.addEventListener('mousemove', e=>{ if(!isDrag) return; offset={x:e.clientX-dragStart.x, y:e.clientY-dragStart.y}; applyTransform(); });
+window.addEventListener('mouseup', ()=>{ isDrag=false; canvas.style.cursor='grab'; });
+canvas.addEventListener('wheel', e=>{ e.preventDefault(); const d=-e.deltaY*0.001; scale=Math.min(3,Math.max(0.3, scale+d)); applyTransform(); }, {passive:false});
+canvas.addEventListener('touchstart', e=>{ if(e.touches.length===1){ if(e.target.closest('.person')) return; isDrag=true; dragStart={x:e.touches[0].clientX-offset.x, y:e.touches[0].clientY-offset.y}; } else if(e.touches.length===2){ const dx=e.touches[0].clientX-e.touches[1].clientX, dy=e.touches[0].clientY-e.touches[1].clientY; lastPinch=Math.hypot(dx,dy); } }, {passive:false});
+canvas.addEventListener('touchmove', e=>{ if(e.touches.length===1 && isDrag){ offset={x:e.touches[0].clientX-dragStart.x, y:e.touches[0].clientY-dragStart.y}; applyTransform(); } else if(e.touches.length===2 && lastPinch){ const dx=e.touches[0].clientX-e.touches[1].clientX, dy=e.touches[0].clientY-e.touches[1].clientY; const dist=Math.hypot(dx,dy); scale=Math.min(3,Math.max(0.3, scale*dist/lastPinch)); lastPinch=dist; applyTransform(); } }, {passive:false});
+window.addEventListener('touchend', ()=>{ isDrag=false; lastPinch=null; });
+function resetView(){ offset={x:innerWidth/2, y:innerHeight/2}; scale=1; selectedForAdd=null; applyTransform(); render(); }
+document.getElementById('resetBtn').onclick=()=>{ resetView(); showToast('Vaade lähtestatud '+new Date().toLocaleTimeString()); };
+document.getElementById('fitBtn').onclick=()=>{ resetView(); showToast('Sobitatud '+persons.length+' isikut - '+new Date().toLocaleTimeString()); };
+puuBtn.onclick=()=>{ document.getElementById('profileModal').style.display='none'; document.getElementById('seosModal').style.display='none'; resetView(); showToast('Puu ('+persons.length+') - Ida Raudsepp'); };
+// Profile modal logic - Puu tab brings tree forward
+const profileModal=document.getElementById('profileModal'), profileContent=document.getElementById('profileContent');
+function openProfile(){ profileModal.style.display='flex'; setTab('Puu'); }
+function setTab(name){
+  if(name==='Puu'){ profileModal.style.display='none'; resetView(); showToast('Puu ('+persons.length+')'); return; }
+  profileModal.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
+  if(name==='Muuda'){ profileContent.innerHTML='<div class=card><div class=label>Muuda isiku andmeid</div><div style=margin-top:12px;display:flex;flex-direction:column;gap:12px><div class=grid2><input class=input placeholder=Tiitel><input class=input value=Ida placeholder=Eesnimi></div><div class=grid2><input class=input placeholder=Lisanimi><input class=input value=Raudsepp placeholder=Perenimi></div><input class=input value=Penkowski placeholder=Sünninimi><div style=display:flex;gap:12px><label style=display:flex;gap:4px;font-size:14px><input type=radio checked> Elus</label><label style=display:flex;gap:4px;font-size:14px><input type=radio> Surnud</label></div></div></div>'; }
+  else if(name==='Lisa'){ profileContent.innerHTML='<h3 style=font-family:Instrument Serif,serif;font-size:18px>Lisa pereliikmeid</h3><div style=display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px>'+['Lisa isa:#d6eaff','Lisa ema:#ffe0f0','Lisa vend:#fff','Lisa õde:#fff','Lisa mees/naine:#fff','Lisa poeg:#fff','Lisa tütar:#fff'].map(s=>{const [l,c]=s.split(':');return '<button onclick=\'window._openSeosFromProfile(\''+l.replace('Lisa ','')+'\')\' style=border:1px solid var(--border);border-radius:12px;padding:12px;background:#fff;cursor:pointer><div style=width:48px;height:48px;border-radius:999px;background:'+c+';display:flex;align-items:center;justify-content:center;margin:0 auto;border:2px solid var(--border)>+</div><div style=margin-top:8px;font-size:12px;font-weight:500>'+l+'</div></button>';}).join('')+'</div>'; }
+  else if(name==='Veel'){ profileContent.innerHTML='<div style=display:flex;flex-direction:column;gap:12px>'+['Sünnikoht: Klassino, Omskiy rayon, Omskaya oblast, Venemaa','Surmakoht: -','Matmiskoht: -','Amet: -'].map(t=>'<div class=card>'+t+'</div>').join('')+'</div>'; }
+  else { // Puu tab content normally but we close, still provide fallback
+    profileContent.innerHTML='<div class=card muted><div style=display:flex;justify-content:space-between><h3 style=font-family:Instrument Serif,serif;font-size:18px;margin:0>Isiku andmed</h3><label style=display:flex;gap:6px;font-size:12px><input type=checkbox checked> Praegune perekond</label></div><div style=margin-top:12px;font-size:14px><div class=label>Sünd</div><div style=font-weight:600;margin-top:4px>24. märts 1941</div><div style=color:var(--text2)>Klassino, Omskiy rayon, Omskaya oblast, Russia (Venemaa)</div><div style=margin-top:12px;border-top:1px solid var(--border);padding-top:12px><div class=label>Lisateave</div><div style=margin-top:4px>07.04.1994 - perekondlik sündmus</div></div><div style=margin-top:12px;border-top:1px solid var(--border);padding-top:12px><div class=label>Isikukirje ajalugu</div><div style=margin-top:8px;display:flex;flex-direction:column;gap:4px;font-size:13px><div style=display:flex;justify-content:space-between><span style=color:var(--text2)>Värskendaja:</span><span>Ida Raudsepp • 12.08.2026</span></div><div style=display:flex;justify-content:space-between><span style=color:var(--text2)>Lisaja:</span><span>Olev Raudsepp • 05.01.2010</span></div></div></div></div></div><div class=card style=margin-top:16px><h3 style=font-family:Instrument Serif,serif;font-size:18px;margin:0 0 12px>Lähipere</h3><div style=font-size:13px;line-height:1.6;color:var(--text2)>Vanemad: Vladimir Penkowski, Jefrosine Penkowski (Veeber)<br>Õed-vennad: Leonhard, Veera, Anna<br>Partnerid: Vello Raudsepp, Vladimir Arnautov, Jaan Raudsepp</div></div>'; }
+}
+profileModal.querySelectorAll('.tab').forEach(t=>t.onclick=()=>setTab(t.dataset.tab));
+document.getElementById('profileBack').onclick=()=>profileModal.style.display='none';
+document.getElementById('profileClose').onclick=()=>profileModal.style.display='none';
+window._openSeosFromProfile=(type)=>{ profileModal.style.display='none'; openSeos(type); };
+// Seos modal
+const seosModal=document.getElementById('seosModal');
+function openSeos(type){ seosType=type; document.getElementById('seosSelect').value=type; seosModal.style.display='flex'; selectedForAdd=null; render(); 
+  const per={isa:'Penkowski',ema:'Penkowski',vend:'Penkowski',ode:'Penkowski',poeg:'Penkowski',tutar:'Penkowski',mees:'Raudsepp',abikaasa:'Raudsepp'}; document.getElementById('f_perenimi').value=per[type]||'Raudsepp';
+  document.getElementById('f_sugu').value=(['isa','vend','poeg','mees'].includes(type)?'Mees':'Naine');
+  document.getElementById('f_eesnimi').value='';
+}
+document.getElementById('seosSelect').onchange=(e)=>{ seosType=e.target.value; };
+document.getElementById('parentTypeBtn').onclick=()=>{ const d=document.getElementById('parentDropdown'); d.style.display=d.style.display==='none'?'block':'none'; };
+document.getElementById('parentDropdown').querySelectorAll('button').forEach(b=>{ b.onclick=()=>{ parentType=b.dataset.val; document.getElementById('parentTypeLabel').textContent=parentType; document.getElementById('parentDropdown').style.display='none'; }; });
+document.getElementById('seosBack').onclick=()=>seosModal.style.display='none';
+document.getElementById('seosCancel').onclick=()=>seosModal.style.display='none';
+document.getElementById('seosSave').onclick=()=>{
+  const base=persons[0]; const id=seosType+'_'+Date.now(); let nx=base.x, ny=base.y; const gap=230;
+  if(seosType==='isa'){ nx=base.x-115; ny=base.y-140; } else if(seosType==='ema'){ nx=base.x+115; ny=base.y-140; } else if(seosType==='vend'||seosType==='ode'){ const sib=persons.filter(p=>p.y===base.y && p.id!==base.id).length; nx=base.x+(sib%2===0?-1:1)*(180+sib*20); ny=base.y; } else if(seosType==='mees'||seosType==='abikaasa'){ nx=base.gender==='female'? base.x-gap: base.x+gap; ny=base.y; } else if(['poeg','tutar','laps'].includes(seosType)){ const ch=base.childrenIds.length; nx=base.x+(ch-1)*40; ny=base.y+140; }
+  const ees=document.getElementById('f_eesnimi').value || (seosType==='isa'?'Vladimir':seosType==='ema'?'Jefrosine':'Uus');
+  const per=document.getElementById('f_perenimi').value || 'Raudsepp';
+  const sunn=document.getElementById('f_sunninimi').value;
+  const sugu=document.getElementById('f_sugu').value==='Mees'?'male':'female';
+  const np={id, eesnimi:ees, perenimi:per, sunninimi:sunn, sundDate:(document.getElementById('f_pp').value||'')+'.'+(document.getElementById('f_kk').value||'')+'.'+(document.getElementById('f_aaaa').value||''), sundPlace:document.getElementById('f_sundkoht').value, gender:sugu, x:nx,y:ny, parentIds:['poeg','tutar','laps'].includes(seosType)?[base.id]:[], partnerIds:['mees','abikaasa'].includes(seosType)?[base.id]:[], childrenIds:['isa','ema'].includes(seosType)?[base.id]:[] };
+  persons.forEach(p=>{ if(p.id===base.id){ if(['isa','ema'].includes(seosType)) p.parentIds.push(id); if(['mees','abikaasa'].includes(seosType)) p.partnerIds.push(id); if(['poeg','tutar','laps'].includes(seosType)) p.childrenIds.push(id); } });
+  persons.push(np); seosModal.style.display='none'; render(); showToast('Lisatud '+ees+' '+per);
+};
+// init
+render(); resetView();
+</script>
+</body>
+</html>
