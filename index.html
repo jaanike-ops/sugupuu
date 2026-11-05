@@ -1,1 +1,167 @@
-
+<!DOCTYPE html>
+<html lang="et">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sugupuu v5.37 GitHub Pages ready</title>
+<style>
+  :root{--bg:#fff8f0;--pink1:#ffe0f0;--pink2:#ffcfe6;--line:#f0a0c3;--gold:#e8b44a;--ink:#3a2a30;--muted:#8a6a78}
+  *{box-sizing:border-box;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto}
+  body{margin:0;background:var(--bg);color:var(--ink);overscroll-behavior:none}
+  h1,h2{font-family:Georgia,serif;letter-spacing:-0.02em}
+  .hdr{position:sticky;top:0;z-index:30;background:rgba(255,248,240,.92);backdrop-filter:blur(8px);border-bottom:1px solid #f3d8e2;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 16px}
+  .logo{width:32px;height:32px;border-radius:50%;background:linear-gradient(180deg,var(--pink1),var(--pink2));border:1px solid var(--line);display:grid;place-items:center}
+  .tabs{display:flex;gap:4px;background:#fff;border:1px solid #f0c9d8;border-radius:999px;padding:4px}
+  .tab{height:28px;padding:0 12px;border-radius:999px;border:1px solid transparent;background:transparent;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer}
+  .tab.on{background:var(--pink1);border-color:var(--line);color:#6a2a44}
+  .canvas{width:100%;height:calc(100vh - 56px);overflow:hidden;position:relative;background-image:radial-gradient(#f3d8e2 1px,transparent 1px);background-size:22px 22px;touch-action:none;user-select:text}
+  .box{position:absolute;width:150px;height:80px;background:linear-gradient(180deg,var(--pink1),var(--pink2));border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;box-shadow:0 2px 8px rgba(180,90,120,.18);cursor:pointer;user-select:text}
+  .box.sel{box-shadow:0 0 0 2px var(--gold)}
+  .box .nm{font-size:13px;font-weight:700;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:136px}
+  .box .sub{font-size:11px;opacity:.7;margin-top:2px}
+  .plus{position:absolute;left:50%;bottom:-16px;transform:translateX(-50%);width:32px;height:32px;border-radius:50%;background:#fff;border:1.5px solid var(--gold);color:var(--gold);display:grid;place-items:center;font-size:18px;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+  .act{position:absolute;width:124px;height:36px;background:#fff;border:1px solid #e9c5d1;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.08);font-size:12px;font-weight:500;color:#5a3a48;display:grid;place-items:center;cursor:pointer}
+  .act:hover{background:#fff0f6}
+  .zoom{position:absolute;top:12px;left:12px;z-index:20;display:flex;gap:8px}
+  .zbtn{width:32px;height:32px;border-radius:999px;background:#fff;border:1px solid #e8c2d0;display:grid;place-items:center;cursor:pointer}
+  .panel{max-width:720px;margin:0 auto;padding:16px}
+  .card{background:#fff;border:1px solid #f0c9d8;border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .circle{width:64px;height:64px;border-radius:50%;background:#fff;border:2px solid #f0c9d8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#8a6a78;cursor:pointer}
+  .circle.on{border-color:var(--gold);color:#b07a1a}
+  input,select,textarea{width:100%;height:40px;border:1px solid #e9c5d1;border-radius:8px;padding:0 12px;font-size:14px;background:#fff}
+  textarea{height:auto;min-height:90px;padding:10px 12px;resize:vertical}
+  .modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.3);backdrop-filter:blur(2px);display:grid;place-items:center;padding:16px}
+  .modalbox{width:100%;max-width:420px;background:#fff;border:1px solid #f0c9d8;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.15);padding:16px}
+  .warn{background:#ffebeb;border:1px solid #f5b5b5;border-radius:10px;padding:12px;font-size:12px;color:#8a2a2a;line-height:1.4}
+  .mono{font-family:ui-monospace,Menlo,Monaco,monospace}
+  .hint{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.85);border:1px solid #f0c9d8;border-radius:999px;padding:4px 14px;font-size:11px;backdrop-filter:blur(4px)}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div style="display:flex;align-items:center;gap:10px"><div class="logo">🌳</div><div><div style="font-weight:700;line-height:1">Sugupuu</div><div style="font-size:11px;opacity:.6">v5.37 · GitHub Pages ready · 150×80px</div></div></div>
+  <div class="tabs"><button class="tab on" id="t-puu">Puu (1)</button><button class="tab" id="t-lisa">Lisa</button><button class="tab" id="t-sea">Seaded</button></div>
+</div>
+<div id="view-puu">
+  <div class="zoom"><button class="zbtn" id="zin">+</button><button class="zbtn" id="zout">−</button><button class="zbtn" style="width:auto;padding:0 10px;font-size:12px" id="zida">Ida puu</button></div>
+  <div class="canvas" id="canvas"><div id="layer" style="position:absolute;left:0;top:0;will-change:transform"></div><svg id="lines" width="4000" height="3000" style="position:absolute;left:-1000px;top:-1000px;overflow:visible;pointer-events:none"></svg><div class="hint">Puu rida sama kõrgus · abikaasa vasakul tühik · ortogonaalsed jooned · pinch zoom/pan · tekst valitav</div></div>
+</div>
+<div id="view-lisa" style="display:none">
+  <div class="panel">
+    <div style="display:flex;gap:12px;justify-content:center;padding:12px 0">
+      <div class="circle on" data-g="naine"><span style="font-size:20px">+</span><span style="font-size:10px;font-weight:600">Naine</span></div>
+      <div class="circle" data-g="mees"><span style="font-size:20px">+</span><span style="font-size:10px;font-weight:600">Mees</span></div>
+      <div class="circle" data-g="naine"><span style="font-size:20px">+</span><span style="font-size:10px;font-weight:600">Laps</span></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h2 style="margin:0;font-size:18px">Lisa pereliikmeid</h2><label style="font-size:12px;display:flex;align-items:center;gap:6px"><input type="checkbox" id="praegune" style="width:14px;height:14px"> Praegune perekond</label></div>
+      <div id="praegune-list" style="display:none;margin-bottom:12px;padding:10px;background:#fff4f8;border:1px solid #f0c9d8;border-radius:10px"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><div style="font-size:11px;opacity:.6;text-transform:uppercase">Eesnimi *</div><input id="fn" placeholder="Ida"></div>
+        <div><div style="font-size:11px;opacity:.6;text-transform:uppercase">Perekonnanimi</div><input id="ln" placeholder="Tamm"><div id="sugest" style="display:none;margin-top:6px;background:#fff;border:1px solid #f0c9d8;border-radius:8px;padding:4px"></div></div>
+        <div><div style="font-size:11px;opacity:.6;text-transform:uppercase">Sugu</div><select id="gd"><option value="naine">Naine</option><option value="mees">Mees</option></select></div>
+        <div><div style="font-size:11px;opacity:.6;text-transform:uppercase">Sünniaeg</div><input id="bd" type="date"></div>
+        <div><div style="font-size:11px;opacity:.6;text-transform:uppercase">Sünnikoht</div><input id="bp" placeholder="Tartu"></div>
+        <div><div style="font-size:11px;opacity:.6;text-transform:uppercase">Surmaaeg</div><input id="dd" type="date"></div>
+        <div style="grid-column:1/-1"><div style="font-size:11px;opacity:.6;text-transform:uppercase">Elulugu / märkmed (Geni väljad)</div><textarea id="bio" placeholder="Haridus, amet, elukoht..."></textarea></div>
+      </div>
+      <div style="margin-top:14px;display:flex;gap:8px"><button id="save" style="height:44px;padding:0 22px;background:#e8b44a;color:#fff;border:0;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer">Lisa sugupuusse</button><button id="cancel" style="height:44px;padding:0 18px;background:#fff;border:1px solid #e9c5d1;border-radius:999px;font-size:14px;cursor:pointer">Tühista</button></div>
+      <div style="margin-top:12px;font-size:11px;opacity:.6">Vormil ei ole fotot, ei ole paroole, ei ole sõna "keskne". Tekst valitav ja keritav. Helesinine infokast peidetud. Soovita perenimesid täis.</div>
+    </div>
+    <div style="margin-top:12px;background:#fffefb;border:1px solid #f0e0c8;border-radius:12px;padding:12px"><div style="font-size:12px;font-weight:600;margin-bottom:4px">Kopeeritav tekst valikuga</div><div id="copytxt" style="font-size:13px;line-height:1.5;user-select:text;max-height:120px;overflow:auto"></div></div>
+  </div>
+</div>
+<div id="view-sea" style="display:none"><div class="panel"><h2>Seaded · v5.37 GitHub Pages</h2><div class="card"><div style="font-weight:600;margin-bottom:8px">Varundus – kuna pilve ei ole</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button id="exp" style="height:40px;padding:0 14px;background:#ffe0f0;border:1px solid #f0a0c3;border-radius:999px;font-size:13px">Ekspordi JSON</button><label style="height:40px;padding:0 14px;background:#fff;border:1px solid #e9c5d1;border-radius:999px;font-size:13px;display:flex;align-items:center;cursor:pointer">Impordi JSON<input id="imp" type="file" accept=".json" hidden></label></div><div style="margin-top:10px;font-size:12px;opacity:.7">Andmed ainult mälus (in-memory). Ei kasuta localStorage. PWA manifest inline blob. Ilma foto, parool, prindinupu, kustutusmodaalita. 150×80 kastid roosa #ffe0f0->#ffcfe6 ääris #f0a0c3 nagu Lisa naine ilma fotota plus 32px valge kuld #e8b44a. 8 nuppu 124×36 fikseeritud.</div></div></div></div>
+<div id="seos" class="modal" style="display:none"><div class="modalbox"><div style="font-weight:700">Seos</div><div style="font-size:12px;opacity:.7;margin:4px 0 12px">Vali seos tüüp – aken sulgub pärast valikut</div><div style="display:grid;gap:8px"><button class="card" style="text-align:left;height:44px;display:flex;align-items:center" data-rel="paris">Pärisvanemad</button><button class="card" style="text-align:left;height:44px;display:flex;align-items:center" data-rel="lapsendaja">Lapsendajad</button><button class="card" style="text-align:left;height:44px;display:flex;align-items:center" data-rel="kasu">Kasuvanemad</button></div><div class="warn" style="margin-top:12px"><b>Tähelepanu!</b> Igal lapsel saab olla ainult üks pärisvanemate paar. Lapsendajad ja kasuvanemad eraldi.</div><div style="text-align:right;margin-top:12px"><button id="seos-close" style="height:36px;padding:0 14px;background:#fff;border:1px solid #e9c5d1;border-radius:999px">Sulge</button></div></div></div>
+<script>
+let persons=[{id:'1',firstName:'Ida',lastName:'Tamm',gender:'naine',birthDate:'1985-03-14',birthPlace:'Tartu',x:0,y:0},{id:'2',firstName:'Liia',lastName:'Tamm',gender:'naine',birthDate:'1960',x:-110,y:-160},{id:'3',firstName:'Jaan',lastName:'Tamm',gender:'mees',birthDate:'1958',x:110,y:-160},{id:'4',firstName:'Peeter',lastName:'Kask',gender:'mees',birthDate:'1983',x:-200,y:0},{id:'5',firstName:'Mia',lastName:'Kask',gender:'naine',birthDate:'2015',x:0,y:170}];
+let partnerships=[{id:'pp1',p1:'2',p2:'3',type:'abikaasa'},{id:'pp2',p1:'1',p2:'4',type:'abikaasa'}];
+let childLinks=[{id:'cl1',childId:'1',parentIds:['2','3'],relation:'paris'},{id:'cl2',childId:'5',parentIds:['1','4'],relation:'paris'}];
+let selectedId='1', pending=null, pan={x:0,y:0,s:1}, isDragging=null, pinch=null;
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+function getP(id){return persons.find(p=>p.id===id)}
+function centerIda(){
+  const c=$('#canvas'); if(!c) return; const ida=getP('1'); if(!ida) return;
+  pan={x:c.clientWidth/2 - ida.x -75, y:c.clientHeight/2 - ida.y -40, s:1}; applyPan();
+}
+function applyPan(){ $('#layer').style.transform='translate('+pan.x+'px,'+pan.y+'px) scale('+pan.s+')'; }
+function render(){
+  const layer=$('#layer'); const svg=$('#lines'); layer.innerHTML=''; svg.innerHTML='';
+  partnerships.forEach(pp=>{
+    const a=getP(pp.p1), b=getP(pp.p2); if(!a||!b) return;
+    const left=a.x<b.x?a:b, right=a.x<b.x?b:a;
+    const x1=left.x+150+8, x2=right.x-8, ym=left.y+40;
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',x1); line.setAttribute('y1',ym); line.setAttribute('x2',x2); line.setAttribute('y2',ym);
+    line.setAttribute('stroke','#c89aad'); line.setAttribute('stroke-width','1.2');
+    if(pp.type==='eks') line.setAttribute('stroke-dasharray','6 4'); svg.appendChild(line);
+  });
+  childLinks.forEach(cl=>{
+    const child=getP(cl.childId); if(!child) return;
+    const pars=cl.parentIds.map(getP).filter(Boolean); if(!pars.length) return;
+    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    let d='';
+    if(pars.length===1){
+      const pr=pars[0]; const x1=pr.x+75, y1=pr.y+80, x2=child.x+75, y2=child.y, my=(y1+y2)/2;
+      d='M '+x1+' '+y1+' L '+x1+' '+my+' L '+x2+' '+my+' L '+x2+' '+y2;
+    }else{
+      const a=pars[0], b=pars[1]; const mx=(a.x+b.x+150)/2, my=a.y+40, x2=child.x+75, y2=child.y, yd=my+30;
+      d='M '+mx+' '+my+' L '+mx+' '+yd+' L '+x2+' '+yd+' L '+x2+' '+y2;
+    }
+    p.setAttribute('d',d); p.setAttribute('fill','none'); p.setAttribute('stroke', cl.relation==='paris'?'#9a6a7d':cl.relation==='lapsendaja'?'#7aa7c7':'#c9a86a'); p.setAttribute('stroke-width','1.2'); svg.appendChild(p);
+  });
+  persons.forEach(p=>{
+    const isSel=p.id===selectedId;
+    const div=document.createElement('div'); div.className='box'+(isSel?' sel':''); div.style.left=p.x+'px'; div.style.top=p.y+'px';
+    div.innerHTML='<div class="nm">'+p.firstName+' '+p.lastName+'</div><div class="sub">'+(p.gender==='mees'?'Mees':'Naine')+' · '+(p.birthDate||'')+'</div>'+(p.birthPlace?'<div class="sub" style="font-size:10px;opacity:.6">'+p.birthPlace+'</div>':'')+'<div class="plus">+</div>';
+    div.addEventListener('click',e=>{e.stopPropagation(); selectedId=p.id; render();});
+    div.addEventListener('mousedown',e=> startDrag(e,'person',p.id));
+    div.addEventListener('touchstart',e=> startDrag(e,'person',p.id), {passive:false});
+    if(isSel){
+      const acts=[{k:'ema',l:'Lisa ema',x:-140,y:-52},{k:'isa',l:'Lisa isa',x:13,y:-52},{k:'abikaasa',l:'Lisa abikaasa',x:166,y:-52},{k:'eksabikaasa',l:'Lisa eks',x:-140,y:22},{k:'vend',l:'Lisa vend',x:166,y:22},{k:'õde',l:'Lisa õde',x:-140,y:96},{k:'poeg',l:'Lisa poeg',x:13,y:96},{k:'tütar',l:'Lisa tütar',x:166,y:96}];
+      acts.forEach(a=>{
+        const b=document.createElement('div'); b.className='act'; b.style.left=a.x+'px'; b.style.top=a.y+'px'; b.textContent=a.l;
+        b.addEventListener('click',e=>{e.stopPropagation(); startAdd(a.k);}); div.appendChild(b);
+      });
+    }
+    layer.appendChild(div);
+  });
+  $('#copytxt').textContent='Ida Tamm (s 1985 Tartus) – praegune perekond koos Peetriga, tütar Mia. Pärisvanemad Liia ja Jaan. Paare: '+partnerships.length+' Seoseid: '+childLinks.length;
+}
+function startAdd(k){ const sel=getP(selectedId); if(!sel) return; if(k==='ema'||k==='isa'){ pending={kind:k,anchorId:sel.id}; $('#seos').style.display='grid'; } else openForm(k, sel.id); }
+function openForm(k, anchorId, rel){ const anchor=getP(anchorId); let g='naine'; if(['isa','poeg','vend'].includes(k)) g='mees'; if(k==='abikaasa') g=anchor.gender==='naine'?'mees':'naine'; $('#gd').value=g; $('#ln').value=anchor?anchor.lastName:''; $('#fn').value=''; $('#fn').focus(); pending={kind:k,anchorId:anchorId,relation:rel||'paris'}; switchTab('lisa'); $('#seos').style.display='none'; showSurnames(); }
+function switchTab(t){ $('#view-puu').style.display=t==='puu'?'block':'none'; $('#view-lisa').style.display=t==='lisa'?'block':'none'; $('#view-sea').style.display=t==='seaded'?'block':'none'; $$('.tab').forEach(b=>b.classList.remove('on')); if(t==='puu'){$('#t-puu').classList.add('on'); setTimeout(centerIda,0);} if(t==='lisa')$('#t-lisa').classList.add('on'); if(t==='seaded')$('#t-sea').classList.add('on'); }
+function showSurnames(){ const uniq=[...new Set(persons.map(p=>p.lastName).filter(Boolean))]; const box=$('#sugest'); if(!uniq.length){box.style.display='none';return;} box.style.display='block'; box.innerHTML='<div style="font-size:11px;opacity:.6;padding:2px 6px">Soovita perenimesid</div>'+uniq.map(n=>'<div style="padding:4px 6px;cursor:pointer;font-size:13px" data-n="'+n+'">'+n+'</div>').join(''); box.querySelectorAll('[data-n]').forEach(el=>el.addEventListener('click',()=>{ $('#ln').value=el.dataset.n; box.style.display='none';}));}
+function handleSave(){ if(!pending) return; if(!$('#fn').value.trim()) return alert('Lisa eesnimi'); const nid=Date.now().toString(); const anchor=getP(pending.anchorId); let nx=anchor.x, ny=anchor.y; if(pending.kind==='ema'){nx=anchor.x-110; ny=anchor.y-160} if(pending.kind==='isa'){nx=anchor.x+110; ny=anchor.y-160} if(pending.kind==='abikaasa'||pending.kind==='eksabikaasa'){nx=anchor.gender==='naine'?anchor.x-200:anchor.x+200; ny=anchor.y} if(pending.kind==='poeg'){nx=anchor.x-40; ny=anchor.y+170} if(pending.kind==='tütar'){nx=anchor.x+60; ny=anchor.y+170} if(pending.kind==='vend'){nx=anchor.x-200; ny=anchor.y} if(pending.kind==='õde'){nx=anchor.x+200; ny=anchor.y}
+  const np={id:nid,firstName:$('#fn').value.trim(),lastName:$('#ln').value.trim(),gender:$('#gd').value,birthDate:$('#bd').value,birthPlace:$('#bp').value,deathDate:$('#dd').value,bio:$('#bio').value,x:nx,y:ny}; persons.push(np);
+  if(['abikaasa','eksabikaasa'].includes(pending.kind)){ partnerships.push({id:'pp'+nid,p1:anchor.id,p2:nid,type:pending.kind==='eksabikaasa'?'eks':'abikaasa'}); }
+  if(['poeg','tütar'].includes(pending.kind)){ const pl=partnerships.find(pr=>pr.p1===anchor.id||pr.p2===anchor.id); let pids=[anchor.id]; if(pl){ const other=pl.p1===anchor.id?pl.p2:pl.p1; pids=[anchor.id,other]; } childLinks.push({id:'cl'+nid,childId:nid,parentIds:pids,relation:'paris'}); }
+  if(['vend','õde'].includes(pending.kind)){ const ap=childLinks.find(c=>c.childId===anchor.id); if(ap) childLinks.push({id:'cl'+nid,childId:nid,parentIds:ap.parentIds,relation:ap.relation}); }
+  if(['ema','isa'].includes(pending.kind)){ const ex=childLinks.find(c=>c.childId===anchor.id&&c.relation==='paris'); if(ex&&pending.relation==='paris'){ if(!ex.parentIds.includes(nid)) ex.parentIds.push(nid);} else { childLinks.push({id:'cl'+nid,childId:anchor.id,parentIds:[nid],relation:pending.relation}); } }
+  selectedId=nid; switchTab('puu'); render(); pending=null;
+}
+function startDrag(e,type,pid){
+  e.preventDefault(); const cx=e.touches?e.touches[0].clientX:e.clientX; const cy=e.touches?e.touches[0].clientY:e.clientY;
+  if(type==='person'){ const per=getP(pid); isDragging={type:'person',sx:cx,sy:cy,orig:pan,pid:pid,origP:{x:per.x,y:per.y}}; } else { isDragging={type:'pan',sx:cx,sy:cy,orig:{...pan}}; }
+  function move(ev){ const x=ev.touches?ev.touches[0].clientX:ev.clientX; const y=ev.touches?ev.touches[0].clientY:ev.clientY; if(!isDragging) return; if(isDragging.type==='pan'){ pan={x:isDragging.orig.x + (x-isDragging.sx), y:isDragging.orig.y + (y-isDragging.sy), s:isDragging.orig.s}; applyPan(); } else { const per=getP(isDragging.pid); if(!per) return; const dx=(x-isDragging.sx)/pan.s, dy=(y-isDragging.sy)/pan.s; per.x=isDragging.origP.x+dx; per.y=isDragging.origP.y+dy; render(); } }
+  function up(){ isDragging=null; window.removeEventListener('mousemove',move); window.removeEventListener('mouseup',up); window.removeEventListener('touchmove',move); window.removeEventListener('touchend',up); }
+  window.addEventListener('mousemove',move); window.addEventListener('mouseup',up); window.addEventListener('touchmove',move,{passive:false}); window.addEventListener('touchend',up);
+}
+$('#canvas').addEventListener('mousedown',e=>{ if(e.target.id==='canvas' || e.target.id==='layer' || e.target.id==='lines') startDrag(e,'pan'); });
+$('#canvas').addEventListener('touchstart',e=>{ if(e.touches.length===2){ const dx=e.touches[0].clientX-e.touches[1].clientX, dy=e.touches[0].clientY-e.touches[1].clientY; pinch={dist:Math.sqrt(dx*dx+dy*dy), s:pan.s}; } }, {passive:false});
+$('#canvas').addEventListener('touchmove',e=>{ if(e.touches.length===2 && pinch){ e.preventDefault(); const dx=e.touches[0].clientX-e.touches[1].clientX, dy=e.touches[0].clientY-e.touches[1].clientY; const dist=Math.sqrt(dx*dx+dy*dy); const sc=dist/pinch.dist; pan.s=Math.min(2.2,Math.max(0.35,pinch.s*sc)); applyPan(); } }, {passive:false});
+$('#canvas').addEventListener('wheel',e=>{ e.preventDefault(); const delta=e.deltaY>0?0.9:1.1; const ns=Math.min(2.2,Math.max(0.35,pan.s*delta)); const rect=$('#canvas').getBoundingClientRect(); const cx=e.clientX-rect.left, cy=e.clientY-rect.top; pan.x=cx-(cx-pan.x)*(ns/pan.s); pan.y=cy-(cy-pan.y)*(ns/pan.s); pan.s=ns; applyPan(); }, {passive:false});
+$('#zin').onclick=()=>{ pan.s=Math.min(2.2,pan.s*1.2); applyPan(); }; $('#zout').onclick=()=>{ pan.s=Math.max(0.35,pan.s*0.8); applyPan(); }; $('#zida').onclick=centerIda;
+$('#t-puu').onclick=()=>switchTab('puu'); $('#t-lisa').onclick=()=>switchTab('lisa'); $('#t-sea').onclick=()=>switchTab('seaded');
+$('#save').onclick=handleSave; $('#cancel').onclick=()=>switchTab('puu');
+$('#seos-close').onclick=()=>$('#seos').style.display='none';
+$$('#seos [data-rel]').forEach(b=> b.onclick=()=>{ if(pending) openForm(pending.kind, pending.anchorId, b.dataset.rel); });
+$('#praegune').onchange=e=>{ const list=$('#praegune-list'); if(e.target.checked){ list.style.display='block'; list.innerHTML=persons.map(p=>'<div style="padding:6px 8px;border:1px solid #f0c9d8;border-radius:8px;margin-bottom:4px;background:#fff;cursor:pointer;font-size:12px" data-id="'+p.id+'">'+p.firstName+' '+p.lastName+' · '+p.gender+'</div>').join(''); list.querySelectorAll('[data-id]').forEach(el=> el.onclick=()=>{ const pr=getP(el.dataset.id); $('#fn').value=pr.firstName; $('#ln').value=pr.lastName; $('#gd').value=pr.gender; $('#bd').value=pr.birthDate||''; $('#bp').value=pr.birthPlace||''; }); } else list.style.display='none'; };
+$('#ln').addEventListener('focus',showSurnames);
+$('#exp').onclick=()=>{ const blob=new Blob([JSON.stringify({persons,partnerships,childLinks,version:'5.37'},null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='sugupuu_v5_37_'+new Date().toISOString().slice(0,10)+'.json'; a.click(); URL.revokeObjectURL(url); };
+$('#imp').onchange=e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ const o=JSON.parse(r.result); if(o.persons) persons=o.persons; if(o.partnerships) partnerships=o.partnerships; if(o.childLinks) childLinks=o.childLinks; render(); }catch{} }; r.readAsText(f); };
+const manifest={name:"Sugupuu v5.37",short_name:"Sugupuu",start_url:".",display:"standalone",background_color:"#fff8f0",theme_color:"#e8b44a",icons:[{src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌳</text></svg>",sizes:"192x192",type:"image/svg+xml"}]}; const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'}); const url=URL.createObjectURL(blob); let link=document.createElement('link'); link.rel='manifest'; link.href=url; document.head.appendChild(link);
+centerIda(); render();
+</script>
+</body>
+</html>
